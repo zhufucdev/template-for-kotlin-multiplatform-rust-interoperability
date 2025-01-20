@@ -29,3 +29,5 @@ kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref 
 kotest-multiplatform = { id = "io.kotest.multiplatform", version.ref = "kotest" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 publishOnCentral = "org.danilopianini.publish-on-central:8.0.1"
+jreleaser = { id = "org.jreleaser", version = "1.16.0" }
+mavenPublisher = { id = "com.vanniktech.maven.publish", version = "0.30.0" }

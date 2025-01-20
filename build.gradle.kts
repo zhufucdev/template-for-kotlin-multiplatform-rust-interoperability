@@ -1,18 +1,17 @@
 @file:OptIn(ExperimentalKotlinGradlePluginApi::class)
 
-import org.gradle.kotlin.dsl.withType
+import com.vanniktech.maven.publish.JavadocJar
+import com.vanniktech.maven.publish.KotlinMultiplatform
+import com.vanniktech.maven.publish.SonatypeHost
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     `crab-multiplatform`
-    alias(libs.plugins.kotest.multiplatform)
+    `maven-publish`
     alias(libs.plugins.dokka)
-    alias(libs.plugins.publishOnCentral)
+    alias(libs.plugins.mavenPublisher)
 }
-
-group = "com.zhufucdev.vectoria"
-version = "0.1.0-SNAPSHOT"
 
 repositories {
     google()
@@ -88,7 +87,7 @@ kotlin {
 }
 
 android {
-    namespace = project.group.toString()
+    namespace = Vectoria.namespace
     compileSdk = 34
     defaultConfig {
         minSdk = 27
@@ -99,32 +98,41 @@ tasks.dokkaJavadoc {
     enabled = false
 }
 
-publishOnCentral {
-    projectLongName = "Vectoria"
-    projectDescription = "Single purpose KMP vector database for KNN search."
-    repoOwner = "zhufucdev"
-    scmConnection = "scm:git:git://github.com/zhufucdev/Vectoria.git"
+mavenPublishing {
+    configure(
+        KotlinMultiplatform(
+            javadocJar = JavadocJar.Dokka("dokkaHtml"),
+            sourcesJar = true,
+            androidVariantsToPublish = listOf("release")
+        )
+    )
 
-    publishing {
-        publications {
-            withType<MavenPublication> {
-                artifactId = "kotlin"
-                pom {
-                    licenses {
-                        license {
-                            name = "The Apache License, Version 2.0"
-                            url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
-                        }
-                    }
-                    developers {
-                        developer {
-                            name = "Steve Reed"
-                            email = "zhufuzhufu1@gmail.com"
-                            id = "zhufucdev"
-                        }
-                    }
-                }
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+    signAllPublications()
+
+    coordinates(Vectoria.namespace, "kotlin", "0.1.0")
+    pom {
+        name = "Vectoria"
+        description = "Single purpose KMP vector database for KNN search."
+        url = "https://github.com/zhufucdev/vectoria-kt"
+
+        licenses {
+            license {
+                name = "The Apache License, Version 2.0"
+                url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
             }
+        }
+        developers {
+            developer {
+                name = "Steve Reed"
+                email = "zhufuzhufu1@gmail.com"
+                id = "zhufucdev"
+            }
+        }
+        scm {
+            url = "https://github.com/zhufucdev/vectoria-kt"
+            connection = "scm:git:git://github.com/zhufucdev/vectoria-kt.git"
+            developerConnection = "scm:git:ssh://github.com/zhufucdev/vectoria-kt.git"
         }
     }
 }

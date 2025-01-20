@@ -5,7 +5,7 @@ actual object Platform {
     external fun plus(x: Int, y: Int): Int
 
     init {
-        System.load("/Users/zhufu/Source/Kotlin/template-for-kotlin-multiplatform-rust-interoperability/target/release/libvectoria.dylib")
+        // TODO: Load native library
     }
 
     actual val name = "JVM. Also, $a + $b equals to ${plus(a, b)} in Rust"

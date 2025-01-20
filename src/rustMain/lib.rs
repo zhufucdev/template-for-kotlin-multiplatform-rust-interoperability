@@ -1,3 +1,5 @@
+use jni::JNIEnv;
+use jni::objects::JClass;
 pub use plus::*;
 
 pub mod plus {
@@ -7,9 +9,15 @@ pub mod plus {
     }
 }
 
+#[no_mangle]
+pub extern "system" fn Java_Platform_plus(env: JNIEnv, class: JClass, a: i32, b: i32) -> i32 {
+    println!("Loaded from Rust. a = {a}, b = {b}");
+    plus::plus(a, b)
+}
+
 #[cfg(test)]
 mod tests {
-    use plus::plus;
+    use crate::plus;
 
     #[test]
     fn plus_test() {
@@ -20,5 +28,4 @@ mod tests {
         assert_eq!(5, plus(3, 2));
         assert_eq!(5, plus(2, 3));
     }
-
 }

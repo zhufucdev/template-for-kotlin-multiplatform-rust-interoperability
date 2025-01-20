@@ -1,22 +1,18 @@
-import org.danilopianini.gradle.mavencentral.JavadocJar
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
-import org.gradle.internal.os.OperatingSystem
-import org.gradle.kotlin.dsl.support.listFilesOrdered
+@file:OptIn(ExperimentalKotlinGradlePluginApi::class)
 
-@Suppress("DSL_SCOPE_VIOLATION")
+import org.gradle.kotlin.dsl.withType
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
-    alias(libs.plugins.kotlin.multiplatform)
+    `crab-multiplatform`
     alias(libs.plugins.kotest.multiplatform)
     alias(libs.plugins.dokka)
-    alias(libs.plugins.gitSemVer)
-    alias(libs.plugins.kotlin.qa)
-    alias(libs.plugins.multiJvmTesting)
-    alias(libs.plugins.npm.publish)
     alias(libs.plugins.publishOnCentral)
-    alias(libs.plugins.taskTree)
 }
 
-group = "org.danilopianini"
+group = "com.zhufucdev.vectoria"
+version = "0.1.0-SNAPSHOT"
 
 repositories {
     google()
@@ -24,13 +20,48 @@ repositories {
 }
 
 kotlin {
+    applyDefaultHierarchyTemplate()
+
+    androidTarget {
+        publishLibraryVariants("release")
+        compilations.all {
+            compileTaskProvider.configure {
+                compilerOptions {
+                    jvmTarget.set(JvmTarget.JVM_1_8)
+                }
+            }
+        }
+    }
+
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = "1.8"
+            kotlinOptions.jvmTarget = "11"
         }
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
         }
+    }
+
+    listOf(
+        linuxX64(),
+        linuxArm64(),
+        mingwX64(),
+        macosX64(),
+        macosArm64(),
+        iosX64(),
+        iosArm64(),
+        iosSimulatorArm64()
+    ).forEach {
+        it.setupRustCompilationTask()
+        it.binaries {
+            sharedLib()
+            staticLib()
+        }
+    }
+
+    compilerOptions {
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+        allWarningsAsErrors = true
     }
 
     sourceSets {
@@ -41,91 +72,26 @@ kotlin {
                 implementation(libs.bundles.kotest.common)
             }
         }
+        val jvmMain by getting {
+
+        }
         val jvmTest by getting {
             dependencies {
                 implementation(libs.kotest.runner.junit5)
             }
         }
-        val nativeMain by creating {
-            dependsOn(commonMain)
+        val nativeMain by getting {
         }
-        val nativeTest by creating {
-            dependsOn(commonTest)
+        val nativeTest by getting {
         }
     }
+}
 
-    js(IR) {
-        browser()
-        nodejs()
-        binaries.library()
-    }
-
-    val os = OperatingSystem.current()
-
-    val nativeSetup: KotlinNativeTarget.() -> Unit = {
-        compilations["main"].defaultSourceSet.dependsOn(kotlin.sourceSets["nativeMain"])
-        compilations["test"].defaultSourceSet.dependsOn(kotlin.sourceSets["nativeTest"])
-        binaries {
-            staticLib()
-            sharedLib()
-            all {
-                val libPath = "${rootProject.projectDir}/target/release"
-                val libName = "plus"
-                val libNameInOS = when {
-                    os.isLinux || os.isMacOsX -> "lib$libName.a"
-                    os.isWindows -> "$libName.lib"
-                    else -> ""
-                }
-                linkerOpts.add("$libPath/$libNameInOS")
-            }
-            executable {
-                entryPoint = "main"
-            }
-        }
-        compilations.getByName("main") {
-            cinterops {
-                val plus by creating {
-                    includeDirs("$projectDir/target")
-                }
-            }
-        }
-    }
-
-    linuxX64(nativeSetup)
-    mingwX64(nativeSetup)
-    macosX64(nativeSetup)
-
-    targets.all {
-        compilations.all {
-            kotlinOptions {
-                allWarningsAsErrors = true
-            }
-        }
-    }
-
-    val excludeTargets = when {
-        os.isLinux -> kotlin.targets.filterNot { "linux" in it.name }
-        os.isWindows -> kotlin.targets.filterNot { "mingw" in it.name }
-        os.isMacOsX -> kotlin.targets.filter { "linux" in it.name || "mingw" in it.name }
-        else -> emptyList()
-    }.mapNotNull { it as? KotlinNativeTarget }
-
-    configure(excludeTargets) {
-        compilations.configureEach {
-            cinterops.configureEach { tasks[interopProcessingTaskName].enabled = false }
-            compileTaskProvider.get().enabled = false
-            tasks[processResourcesTaskName].enabled = false
-        }
-        binaries.configureEach { linkTask.enabled = false }
-
-        mavenPublication {
-            tasks.withType<AbstractPublishToMaven>().configureEach {
-                onlyIf { publication != this@mavenPublication }
-            }
-            tasks.withType<GenerateModuleMetadata>().configureEach {
-                onlyIf { publication.get() != this@mavenPublication }
-            }
-        }
+android {
+    namespace = project.group.toString()
+    compileSdk = 34
+    defaultConfig {
+        minSdk = 27
     }
 }
 
@@ -133,130 +99,32 @@ tasks.dokkaJavadoc {
     enabled = false
 }
 
-tasks.withType<JavadocJar>().configureEach {
-    val dokka = tasks.dokkaHtml.get()
-    dependsOn(dokka)
-    from(dokka.outputDirectory)
-}
-
-signing {
-    if (System.getenv("CI") == "true") {
-        val signingKey: String? by project
-        val signingPassword: String? by project
-        useInMemoryPgpKeys(signingKey, signingPassword)
-    }
-}
-
 publishOnCentral {
-    projectLongName.set("Template for Kotlin Multiplatform Project")
-    projectDescription.set("A template repository for Kotlin Multiplatform projects")
-    repository("https://maven.pkg.github.com/danysk/${rootProject.name}".lowercase()) {
-        user.set("DanySK")
-        password.set(System.getenv("GITHUB_TOKEN"))
-    }
+    projectLongName = "Vectoria"
+    projectDescription = "Single purpose KMP vector database for KNN search."
+    repoOwner = "zhufucdev"
+    scmConnection = "scm:git:git://github.com/zhufucdev/Vectoria.git"
+
     publishing {
         publications {
             withType<MavenPublication> {
+                artifactId = "kotlin"
                 pom {
+                    licenses {
+                        license {
+                            name = "The Apache License, Version 2.0"
+                            url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+                        }
+                    }
                     developers {
                         developer {
-                            name.set("Danilo Pianini")
-                            email.set("danilo.pianini@gmail.com")
-                            url.set("http://www.danilopianini.org/")
+                            name = "Steve Reed"
+                            email = "zhufuzhufu1@gmail.com"
+                            id = "zhufucdev"
                         }
                     }
                 }
             }
         }
-    }
-}
-
-npmPublish {
-    registries {
-        register("npmjs") {
-            uri.set("https://registry.npmjs.org")
-            val npmToken: String? by project
-            authToken.set(npmToken)
-            dry.set(npmToken.isNullOrBlank())
-        }
-    }
-}
-
-publishing {
-    publications {
-        publications.withType<MavenPublication>().configureEach {
-            if ("OSSRH" !in name) {
-                artifact(tasks.javadocJar)
-            }
-        }
-    }
-}
-
-// *****************************
-//      Rust Configurations
-// *****************************
-
-/**
- * Utility to launch cargo commands. Might be moved to buildSrc.
- */
-fun Task.cargoCLI(vararg commands: String) {
-    doLast {
-        project.exec {
-            commandLine("cargo", *commands)
-        }
-    }
-}
-
-/**
- * Generate the .h files to bind the Rust .a library to Kotlin.
- * See the .def file in the nativeInterop folder to see the cinterop configuration.
- */
-val generateHeaders by tasks.registering {
-    doLast {
-        project.exec {
-            commandLine("cbindgen", "--output", "target/plus.h")
-        }
-    }
-}
-
-/**
- * Build the Rust library with release optimization enabled in the compiler.
- */
-val cargoBuildRelease by tasks.registering {
-    cargoCLI("build", "--release")
-    finalizedBy(generateHeaders)
-    doLast {
-        println(File("${rootProject.projectDir}/target/release").listFilesOrdered().map { it.name })
-    }
-}
-
-/**
- * Execute the Rust tests.
- */
-val cargoTest by tasks.registering {
-    cargoCLI("test")
-    dependsOn(cargoBuildRelease)
-}
-
-/**
- * Tasks relative to cinterop needs to Rust library to correctly execute.
- */
-tasks.filter { it.name.contains("cinterop") }.forEach {
-    it.dependsOn(cargoBuildRelease)
-}
-
-/**
- * Also run Rust tests when launching the "check" task.
- */
-tasks.check {
-    dependsOn(cargoTest)
-}
-
-/**
- * The clean task also delete the "target" folder, equivalent of "build" folder in kotlin for Rust.
- */
-tasks.clean {
-    doFirst {
-        delete("target")
     }
 }

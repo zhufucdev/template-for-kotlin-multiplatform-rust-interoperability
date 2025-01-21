@@ -19,7 +19,14 @@ repositories {
 }
 
 kotlin {
-    applyDefaultHierarchyTemplate()
+    applyDefaultHierarchyTemplate {
+        common {
+            group("jvmCommon") {
+                withJvm()
+                withAndroidTarget()
+            }
+        }
+    }
 
     androidTarget {
         publishLibraryVariants("release")
@@ -67,8 +74,7 @@ kotlin {
         val commonMain by getting { }
         val commonTest by getting {
             dependencies {
-                implementation(libs.bundles.kotlin.testing.common)
-                implementation(libs.bundles.kotest.common)
+                implementation(libs.kotlin.test)
             }
         }
         val jvmMain by getting {
@@ -83,14 +89,23 @@ kotlin {
         }
         val nativeTest by getting {
         }
+
+        val androidInstrumentedTest by getting {
+            dependencies {
+                implementation(libs.junit)
+                implementation(libs.bundles.androidx.test)
+            }
+        }
     }
 }
 
 android {
     namespace = Vectoria.namespace
     compileSdk = 34
+
     defaultConfig {
         minSdk = 27
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 }
 

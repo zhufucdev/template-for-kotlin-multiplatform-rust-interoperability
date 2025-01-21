@@ -3,6 +3,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.jetbrains.kotlin.konan.target.KonanTarget
 import java.io.File
@@ -80,7 +81,7 @@ abstract class CargoCompile : DefaultTask() {
      *
      * Example: `$projectRoot/build/target/aarch-apple-darwin/release/libcoolname.dylib`
      */
-    @get:Internal
+    @OutputFile
     val binaryFile = libPath.zip(konanTargetProperty.zip(libNameProperty) { k, l -> k to l }) { product, (konan, libName) ->
         File(
             product,

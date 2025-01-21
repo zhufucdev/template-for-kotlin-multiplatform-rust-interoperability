@@ -39,11 +39,9 @@ internal fun setupRustTask(
             }
         }
 
-    val generateHeaders = project.tasks.getByName("generateHeaders")
-
     val build =
         project.tasks.registerSafe("buildRust${taskName}", CargoCompile::class.java) {
-            finalizedBy(generateHeaders)
+            finalizedBy(project.tasks.generateHeaders)
             dependsOn(prepareToolchain)
 
             konanTarget(konanTarget)
@@ -81,12 +79,13 @@ fun KotlinNativeTarget.setupRustCompilationTask(): RustSetupResult {
     compilations.getByName("main") {
         cinterops {
             create("lib") {
-                includeDirs(setupResult.build.targetDir)
+                headers(project.tasks.generateHeaders.headerFile)
             }
         }
     }
 
-    project.tasks.named("cinteropLib${konanTarget.taskName}").get().dependsOn(setupResult.build)
+    project.tasks.named("cinteropLib${konanTarget.taskName}").get()
+        .dependsOn(setupResult.build, project.tasks.generateHeaders)
 
     return setupResult
 }

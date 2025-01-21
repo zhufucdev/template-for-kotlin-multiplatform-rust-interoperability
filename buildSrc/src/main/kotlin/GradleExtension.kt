@@ -27,3 +27,5 @@ inline fun <reified T : Task> TaskContainer.registerSafe(
 
 fun TaskContainer.registerSafe(name: String, register: Task.() -> Unit): Task =
     registerSafe(name, Task::class.java, register)
+
+val TaskContainer.generateHeaders: CbindGenerate get() = withType(CbindGenerate::class.java).first()

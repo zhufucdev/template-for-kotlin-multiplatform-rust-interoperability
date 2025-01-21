@@ -15,7 +15,7 @@ internal val rustupTarget = mapOf(
     KonanTarget.LINUX_ARM64 to "aarch64-unknown-linux-gnu",
     KonanTarget.IOS_X64 to "x86_64-apple-ios",
     KonanTarget.IOS_ARM64 to "aarch64-apple-ios",
-    KonanTarget.IOS_SIMULATOR_ARM64 to "aarch64-apple-ios",
+    KonanTarget.IOS_SIMULATOR_ARM64 to "aarch64-apple-ios-sim",
     KonanTarget.MINGW_X64 to "x86_64-pc-windows-gnu"
 )
 

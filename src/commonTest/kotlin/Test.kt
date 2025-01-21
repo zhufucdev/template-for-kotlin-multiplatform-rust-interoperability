@@ -1,10 +1,11 @@
-import io.kotest.core.spec.style.StringSpec
-import io.kotest.matchers.shouldNotBe
+import kotlin.test.Test
+import kotlin.test.assertNotEquals
 
-class Test : StringSpec(
-    {
-        "a simple test" {
-            true shouldNotBe false
-        }
+class Test {
+    @Test
+    fun simpleTest() {
+        assertNotEquals(
+            true, false
+        )
     }
-)
+}

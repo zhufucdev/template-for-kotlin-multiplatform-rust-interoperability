@@ -1,10 +1,6 @@
 import org.gradle.api.DefaultTask
 import org.gradle.api.provider.Property
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.Optional
-import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.*
 import org.jetbrains.kotlin.konan.target.KonanTarget
 import java.io.File
 
@@ -19,6 +15,10 @@ abstract class CargoCompile : DefaultTask() {
     @get:Optional
     @get:Input
     protected abstract val libNameProperty: Property<String>
+
+    @get:Optional
+    @get:InputFiles
+    protected abstract val sourceDirProperty: Property<File>
 
     @get:Internal
     var konanTarget: KonanTarget
@@ -53,6 +53,17 @@ abstract class CargoCompile : DefaultTask() {
         libNameProperty.set(value)
     }
 
+    @get:Internal
+    var sourceDir: File
+        get() = sourceDirProperty.get()
+        set(value) {
+            sourceDirProperty.set(value)
+        }
+
+    fun sourceDir(value: File) {
+        sourceDirProperty.set(value)
+    }
+
     private val platformTuple get() = rustupTarget[konanTarget] ?: error("Unsupported platform: ${konanTarget.name}.")
 
     /**
@@ -82,15 +93,17 @@ abstract class CargoCompile : DefaultTask() {
      * Example: `$projectRoot/build/target/aarch-apple-darwin/release/libcoolname.dylib`
      */
     @OutputFile
-    val binaryFile = libPath.zip(konanTargetProperty.zip(libNameProperty) { k, l -> k to l }) { product, (konan, libName) ->
-        File(
-            product,
-            "${konan.family.dynamicPrefix}${libName}.${konan.family.dynamicSuffix}"
-        )
-    }
+    val binaryFile =
+        libPath.zip(konanTargetProperty.zip(libNameProperty) { k, l -> k to l }) { product, (konan, libName) ->
+            File(
+                product,
+                "${konan.family.dynamicPrefix}${libName}.${konan.family.dynamicSuffix}"
+            )
+        }
 
     init {
         dirNameProperty.set("target")
+        sourceDirProperty.set(project.file("src/rustMain"))
     }
 
     @TaskAction

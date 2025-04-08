@@ -12,7 +12,7 @@ tasks.register("generateHeaders", CbindGenerate::class)
 data class AndroidSetup(
     val abi: String,
     val konanTarget: KonanTarget,
-    val crab: RustSetupResult = setupRustTask(konanTarget, project, Vectoria.name),
+    val crab: RustSetupResult = setupRustTask(konanTarget, project, Library.name),
 )
 
 val androidSetups = listOf(
@@ -47,7 +47,7 @@ val jvmSetups =
         KonanTarget.LINUX_ARM64,
         KonanTarget.LINUX_X64,
         KonanTarget.MINGW_X64
-    ).map { setupRustTask(it, project, Vectoria.name) }
+    ).map { setupRustTask(it, project, Library.name) }
 val jniResourceDir = layout.buildDirectory.dir("jniResources")
 
 val copyJniResources = jvmSetups.map { setup ->

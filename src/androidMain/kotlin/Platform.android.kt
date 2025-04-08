@@ -1,3 +1,3 @@
 actual fun platformLoadLib() {
-    System.loadLibrary("vectoria")
+    System.loadLibrary(LIB_NAME)
 }

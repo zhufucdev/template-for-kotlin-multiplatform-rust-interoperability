@@ -100,7 +100,7 @@ kotlin {
 }
 
 android {
-    namespace = Vectoria.namespace
+    namespace = Library.namespace
     compileSdk = 34
 
     defaultConfig {
@@ -125,7 +125,7 @@ mavenPublishing {
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
     signAllPublications()
 
-    coordinates(Vectoria.namespace, "kotlin", "0.1.0")
+    coordinates(Library.namespace, "kotlin", "0.1.0")
     pom {
         name = "Vectoria"
         description = "Single purpose KMP vector database for KNN search."

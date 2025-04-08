@@ -75,6 +75,15 @@ gradle cargoBuildRelease
 
 The header file will also be generated inside the `target` folder.
 
+## Incorporating the template
+You can either use this project as a submodule or a standalone library.
+For personal reasons, this library is named as `vectoria`, which you can reverse in simple steps:
+
+- Modify fields under `buildSrc/src/main/kotlin/Library.kt`. Namespace is an android library and maven publish requirement. 
+- Change the `LIB_NAME` constant under `src/jvmCommonMain/kotlin/Lib.kt`, which is supposed to be
+the same as the one under `Library.kt`, which I failed to make dry enough, but whatever.
+- Either change the POM info in `build.gradle.kts` or remove the publishing block if you don't need it.
+
 # Some Credits
 
 Started from [AngeloFilaseta](https://github.com/AngeloFilaseta)'s

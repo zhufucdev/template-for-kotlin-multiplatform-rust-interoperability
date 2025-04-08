@@ -1,7 +1,5 @@
 import java.io.File
 
-const val LIB_NAME = "vectoria"
-
 data class Jni(val prefix: String = "", val postfix: String, val platformTuple: String) {
     val filename: String by lazy { "${prefix}${LIB_NAME}${platformTuple}.${postfix}" }
 }

@@ -63,7 +63,7 @@ fun KotlinNativeTarget.setupRustCompilationTask(): RustSetupResult {
     val setupResult = setupRustTask(
         konanTarget = konanTarget,
         project = project,
-        libName = Vectoria.name,
+        libName = Library.name,
         platform = targetTuple
     )
 

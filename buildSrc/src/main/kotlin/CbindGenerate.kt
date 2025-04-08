@@ -10,7 +10,7 @@ abstract class CbindGenerate : DefaultTask() {
     abstract val headerFileProperty: Property<File>
 
     init {
-        val defaultFile = project.layout.buildDirectory.file("target/libvectoria.h").get().asFile
+        val defaultFile = project.layout.buildDirectory.file("target/lib${Library.name}.h").get().asFile
         headerFileProperty.set(defaultFile)
     }
 

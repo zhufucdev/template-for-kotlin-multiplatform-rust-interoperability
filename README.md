@@ -82,7 +82,9 @@ For personal reasons, this library is named as `vectoria`, which you can reverse
 - Modify fields under `buildSrc/src/main/kotlin/Library.kt`. Namespace is an android library and maven publish requirement. 
 - Change the `LIB_NAME` constant under `src/jvmCommonMain/kotlin/Lib.kt`, which is supposed to be
 the same as the one under `Library.kt`, which I failed to make dry enough, but whatever.
+- Package and lib name under `Cargo.toml`, same as above.
 - Either change the POM info in `build.gradle.kts` or remove the publishing block if you don't need it.
+- Project name under `settings.gradle.kts`.
 
 # Some Credits
 

@@ -79,6 +79,7 @@ fun KotlinNativeTarget.setupRustCompilationTask(): RustSetupResult {
     compilations.getByName("main") {
         cinterops {
             create("lib") {
+                packageName("lib")
                 headers(project.tasks.generateHeaders.headerFile)
             }
         }

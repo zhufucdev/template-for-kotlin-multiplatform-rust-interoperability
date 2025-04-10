@@ -17,6 +17,10 @@ abstract class CargoCompile : DefaultTask() {
     protected abstract val libNameProperty: Property<String>
 
     @get:Optional
+    @get:Input
+    protected abstract val crossProperty: Property<Boolean>
+
+    @get:Optional
     @get:InputFiles
     protected abstract val sourceDirProperty: Property<File>
 
@@ -64,6 +68,18 @@ abstract class CargoCompile : DefaultTask() {
         sourceDirProperty.set(value)
     }
 
+    /**
+     * Use the [cross](https://github.com/cross-rs/cross) utility
+     * instead of cargo for convenient cross-compilation.
+     * A Docker daemon is required to use this feature.
+     */
+    @get:Internal
+    var cross: Boolean
+        get() = crossProperty.get()
+        set(value) {
+            crossProperty.set(value)
+        }
+
     private val platformTuple get() = rustupTarget[konanTarget] ?: error("Unsupported platform: ${konanTarget.name}.")
 
     /**
@@ -104,16 +120,28 @@ abstract class CargoCompile : DefaultTask() {
     init {
         dirNameProperty.set("target")
         sourceDirProperty.set(project.file("src/rustMain"))
+        crossProperty.set(false)
     }
 
     @TaskAction
     protected fun compile() {
-        project.cargoRun(
-            "build",
-            "--release",
-            "--target=$platformTuple",
-            "--target-dir",
-            targetDir.get().path
-        )
+        if (cross) {
+            project.rustupRun(
+                "build",
+                "--release",
+                "--target=$platformTuple",
+                "--target-dir",
+                targetDir.get().path,
+                program = "cross"
+            )
+        } else {
+            project.cargoRun(
+                "build",
+                "--release",
+                "--target=$platformTuple",
+                "--target-dir",
+                targetDir.get().path
+            )
+        }
     }
 }

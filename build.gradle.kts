@@ -5,6 +5,7 @@ import com.vanniktech.maven.publish.KotlinMultiplatform
 import com.vanniktech.maven.publish.SonatypeHost
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.konan.target.Family
 
 plugins {
     `crab-multiplatform`
@@ -17,6 +18,16 @@ repositories {
     google()
     mavenCentral()
 }
+
+crabAndroid {
+    libName = Library.name
+}
+
+crabJvm {
+    libName = Library.name
+    cross = true
+}
+
 
 kotlin {
     applyDefaultHierarchyTemplate {
@@ -58,7 +69,10 @@ kotlin {
         iosArm64(),
         iosSimulatorArm64()
     ).forEach {
-        it.setupRustCompilationTask()
+        it.crabNative {
+            libName = Library.name
+            cross = it.konanTarget.family != Family.IOS && it.konanTarget.family != Family.OSX
+        }
         it.binaries {
             sharedLib()
             staticLib()

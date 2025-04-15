@@ -50,7 +50,6 @@ internal fun setupRustTask(
 
     val build =
         project.tasks.registerSafe("buildRust${taskName}", CargoCompile::class.java) {
-            finalizedBy(project.tasks.generateHeaders)
             konanTarget(konanTarget)
             configure(this)
             if (!cross) {
@@ -79,11 +78,12 @@ fun KotlinNativeTarget.crabNative(configure: CargoCompile.() -> Unit): RustSetup
 
     binaries {
         all {
-            linkerOpts.add(setupResult.build.binaryFile.get().path)
+            linkerOpts(setupResult.build.staticLinkBinary.get().path)
         }
-        executable {
-            entryPoint = "main"
-        }
+    }
+
+    val defFileTask = project.tasks.registerSafe("generateDefFile", DefFileTask::class.java) {
+        outputFile = project.layout.buildDirectory.dir("lib.def").get().asFile
     }
 
     compilations.getByName("main") {
@@ -91,12 +91,16 @@ fun KotlinNativeTarget.crabNative(configure: CargoCompile.() -> Unit): RustSetup
             create("lib") {
                 packageName("lib")
                 headers(project.tasks.generateHeaders.headerFile)
+                defFile(defFileTask.outputFile)
             }
         }
     }
 
+    defFileTask.dependsOn(setupResult.build)
     project.tasks.named("cinteropLib${konanTarget.taskName}").get()
-        .dependsOn(setupResult.build, project.tasks.generateHeaders)
+        .dependsOn(project.tasks.generateHeaders, defFileTask)
+    project.tasks.named("compileKotlin${konanTarget.taskName}").get()
+        .dependsOn(setupResult.build)
 
     return setupResult
 }
@@ -116,7 +120,7 @@ fun Project.crabAndroid(configure: CargoCompile.() -> Unit) {
     val copyAbiJniLibs = androidSetups.map { setup ->
         val copy = tasks.register("copy${setup.abi.uppercaseFirstChar()}JniLibs", Copy::class) {
             dependsOn(setup.crab.build)
-            from(setup.crab.build.binaryFile)
+            from(setup.crab.build.staticLinkBinary)
             into(buildJniLibsDir.map { it.file(setup.abi) })
         }
         setup.crab.build.finalizedBy(copy)
@@ -157,7 +161,7 @@ fun Project.crabJvm(configure: CargoCompile.() -> Unit) {
         val platform = setup.build.konanTarget.taskName
         tasks.register<Copy>("copy${platform}JniResources") {
             dependsOn(setup.build)
-            from(setup.build.binaryFile)
+            from(setup.build.dynamicLinkBinary)
             val family = setup.build.konanTarget.family
             rename {
                 "${family.dynamicPrefix}${setup.build.libName}${platform}.${family.dynamicSuffix}"
@@ -179,5 +183,4 @@ fun Project.crabJvm(configure: CargoCompile.() -> Unit) {
             }
         }
     }
-
 }

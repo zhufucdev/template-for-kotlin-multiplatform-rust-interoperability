@@ -17,12 +17,6 @@ abstract class DefFileTask : DefaultTask() {
             outputFileProperty.set(value)
         }
 
-    private val Family.properName get() = when(this) {
-        Family.OSX ->  "macos"
-        Family.MINGW -> "windows"
-        else -> name.lowercase()
-    }
-
     @TaskAction
     fun write() {
         outputFile.writeText(

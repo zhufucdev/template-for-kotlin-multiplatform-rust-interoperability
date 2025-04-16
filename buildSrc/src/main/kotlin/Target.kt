@@ -1,5 +1,6 @@
 import gradle.kotlin.dsl.accessors._611a75feaf31951ac969a948928e6651.android
 import gradle.kotlin.dsl.accessors._611a75feaf31951ac969a948928e6651.androidComponents
+import gradle.kotlin.dsl.accessors._611a75feaf31951ac969a948928e6651.kotlin
 import gradle.kotlin.dsl.accessors._611a75feaf31951ac969a948928e6651.sourceSets
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -10,7 +11,10 @@ import org.gradle.kotlin.dsl.support.uppercaseFirstChar
 import org.gradle.kotlin.dsl.withType
 import org.gradle.language.jvm.tasks.ProcessResources
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+import org.jetbrains.kotlin.gradle.dsl.kotlinExtension
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile
 import org.jetbrains.kotlin.konan.target.KonanTarget
 
 internal val rustupTarget = mapOf(
@@ -75,12 +79,6 @@ fun KotlinNativeTarget.crabNative(configure: CargoCompile.() -> Unit): RustSetup
         platform = targetTuple,
         configure = configure
     )
-
-    binaries {
-        all {
-            linkerOpts(setupResult.build.staticLinkBinary.get().path)
-        }
-    }
 
     val defFileTask = project.tasks.registerSafe("generateDefFile", DefFileTask::class.java) {
         outputFile = project.layout.buildDirectory.dir("lib.def").get().asFile

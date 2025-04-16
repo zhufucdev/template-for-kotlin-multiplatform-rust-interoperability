@@ -3,7 +3,6 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
-import org.jetbrains.kotlin.konan.target.Family
 import java.io.File
 
 abstract class DefFileTask : DefaultTask() {

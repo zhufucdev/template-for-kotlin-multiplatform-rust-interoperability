@@ -90,6 +90,7 @@ fun KotlinNativeTarget.crabNative(configure: CargoCompile.() -> Unit): RustSetup
                 packageName("lib")
                 headers(project.tasks.generateHeaders.headerFile)
                 defFile(defFileTask.outputFile)
+                dependencyFiles += project.files(setupResult.build.staticLinkBinary)
             }
         }
     }
